@@ -1,1 +1,7 @@
-text heee
+import os
+import math
+import csv
+import json
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import barycentric_interpolate
