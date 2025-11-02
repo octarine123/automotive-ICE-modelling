@@ -3,5 +3,5 @@ math
 csv
 json
 numpy
-matplotlin
+matplotlib
 scipy
