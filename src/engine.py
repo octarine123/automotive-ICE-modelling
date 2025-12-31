@@ -19,7 +19,8 @@ P_CRANK_CASE = config["simulation"]["p_crank_case"]
 RPM = 2500.0  # rpm
 DELTA_T = (1 / (6 * RPM))  # /s to /deg
 VEL_AVE = 2 * STROKE * (RPM / 60)
-
+P_ATM = config["operating_conditions"]["p_atm"]
+A_CONROD = config[][]
 
 piston_pos = {'TDC': [-360, 0],
               'BDC': [-180, 180]}
@@ -69,7 +70,7 @@ SV = float(A_PISTON * STROKE)  # m^3
 CV = SV / (COMP_RATIO - 1)  # m^3
 MASS_OSC = MASS_PISTON + MASS_CON_ROD / 3  # kg
 RADIUS_CRANK = STROKE / 2
-M_AIR_IDEAL = mass_gas(c.P_ATM, SV, c.TEMP_ATM)
+M_AIR_IDEAL = mass_gas(P_ATM, SV, c.TEMP_ATM)
 M_AIR_CYC = mass_gas(c.P_INTAKE, CV, c.TEMP_INLET)
 eng_speed = eng_speed_rad(RPM)
 L_TDC = CV / A_PISTON
@@ -94,7 +95,7 @@ def len_h(theta):
 
 def stress_conrod(theta):
     """calculate stress on piston (Pa)"""
-    sigma = i_total(theta) / eng_dict.A_CON_ROD
+    sigma = i_total(theta) / A_CON_ROD
     return sigma
 
 
