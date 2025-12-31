@@ -20,7 +20,7 @@ RPM = 2500.0  # rpm
 DELTA_T = (1 / (6 * RPM))  # /s to /deg
 VEL_AVE = 2 * STROKE * (RPM / 60)
 P_ATM = config["operating_conditions"]["p_atm"]
-A_CONROD = config[][]
+A_CONROD = config["engine"]["area_conrod"]
 
 piston_pos = {'TDC': [-360, 0],
               'BDC': [-180, 180]}
