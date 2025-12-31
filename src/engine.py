@@ -8,7 +8,7 @@ import src.combustion
 with open("src/engine_config.json", "r") as file:
     config = json.load(file)
 
-BORE = config["engine"]["stroke"]
+BORE = config["engine"]["bore"]
 STROKE = config["engine"]["stroke"]
 LEN_CONROD = config["engine"]["con_rod_length"]
 NUM_CYL = config["engine"]["num_cylinders"]
@@ -16,11 +16,21 @@ COMP_RATIO = config["engine"]["compression_ratio"]
 MASS_PISTON = config["engine"]["mass_piston"]
 MASS_CON_ROD = config["engine"]["mass_conrod"]
 P_CRANK_CASE = config["simulation"]["p_crank_case"]
-RPM = 2500.0  # rpm
+RPM = config["operating_conditions"]["rpm"]  # rpm
 DELTA_T = (1 / (6 * RPM))  # /s to /deg
 VEL_AVE = 2 * STROKE * (RPM / 60)
 P_ATM = config["operating_conditions"]["p_atm"]
+P_INTAKE = config["operating_conditions"]["p_intake"]
 A_CONROD = config["engine"]["area_conrod"]
+R_AIR = config["gas_properties"]["R_air"]
+TEMP_ATM = config["operating_conditions"]["temp_atm"]
+TEMP_INLET = config["operating_conditions"]["temp_inlet"]
+GAS_A_FRI = config["combustion"]["gasoline_friction_a"]
+GAS_B_FRI = config["combustion"]["gasoline_friction_b"]
+RHO_AIR = config["gas_properties"]["rho_air"]
+AFR = config["combustion"]["afr"]
+CAL_VAL = config["combustion"]["calorific_value"]
+
 
 piston_pos = {'TDC': [-360, 0],
               'BDC': [-180, 180]}
@@ -61,7 +71,7 @@ def mass_gas(p_gas, vol_gas, temp):
     """
     calc mass of gas (kg)
     """
-    mass = (p_gas * vol_gas) / (c.R_AIR * temp)
+    mass = (p_gas * vol_gas) / (R_AIR * temp)
     return mass
 
 
@@ -70,8 +80,8 @@ SV = float(A_PISTON * STROKE)  # m^3
 CV = SV / (COMP_RATIO - 1)  # m^3
 MASS_OSC = MASS_PISTON + MASS_CON_ROD / 3  # kg
 RADIUS_CRANK = STROKE / 2
-M_AIR_IDEAL = mass_gas(P_ATM, SV, c.TEMP_ATM)
-M_AIR_CYC = mass_gas(c.P_INTAKE, CV, c.TEMP_INLET)
+M_AIR_IDEAL = mass_gas(P_ATM, SV, TEMP_ATM)
+M_AIR_CYC = mass_gas(P_INTAKE, CV, TEMP_INLET)
 eng_speed = eng_speed_rad(RPM)
 L_TDC = CV / A_PISTON
 
@@ -85,11 +95,11 @@ def len_h(theta):
     """
     calc piston positon (m)
     """
-    len_a = np.sqrt(eng_dict.LEN_CONROD ** 2.0 -
+    len_a = np.sqrt(LEN_CONROD ** 2.0 -
                     (RADIUS_CRANK * np.sin(np.radians(theta))) ** 2)
     len_b = RADIUS_CRANK * np.cos(np.radians(theta))
     len_s = len_a + len_b
-    len_h_sum = RADIUS_CRANK + eng_dict.LEN_CONROD - len_s
+    len_h_sum = RADIUS_CRANK + LEN_CONROD - len_s
     return len_h_sum
 
 
@@ -123,12 +133,12 @@ def v_cyl(theta):
 
 def fmep(rpm):
     """Friction mean effective pressure"""
-    fmep_val = c.GAS_A_FRI + c.GAS_B_FRI * eng_dict.STROKE * rpm
+    fmep_val = GAS_A_FRI + GAS_B_FRI * STROKE * rpm
     return fmep_val
 
 
 def conrod_stress(force):
-    stress = force / eng_dict.A_CON_ROD
+    stress = force / A_CON_ROD
     return stress
 
 def imep(wc_gross_val):
@@ -207,8 +217,8 @@ def wc_gross():
 
 def calc_m_fuel(rpm, t_cam):
     time = (t_cam / (rpm * 360 / 60))
-    m_air = time * (c.RHO_AIR * SV * rpm / 120) * 0.85   # kg/s
-    m_fuel = m_air / c.AFR
+    m_air = time * (RHO_AIR * SV * rpm / 120) * 0.85   # kg/s
+    m_fuel = m_air / AFR
     return m_fuel
 
 
@@ -298,7 +308,7 @@ def eff_mech(imep_val, bmep_val):
 
 
 def eff_therm(w_brake_val):
-    eff_therm_val = abs(w_brake_val / ((c.CAL_VAL * 10 ** 6) * src.combustion.M_FUEL))
+    eff_therm_val = abs(w_brake_val / ((CAL_VAL * 10 ** 6) * src.combustion.M_FUEL))
     return eff_therm_val
 
 
