@@ -1,0 +1,65 @@
+{
+  "engine": {
+    "bore": 0.080,
+    "stroke": 0.088,
+    "con_rod_length": 0.1406,
+    "compression_ratio": 9.62,
+    "num_cylinders": 4,
+    "mass_piston": 0.324,
+    "mass_conrod": 0.493,
+    "area_conrod": 0.000152,
+    "sigma_fat_conrod": 2e8,
+    "diam_bearing": 0.05,
+    "diam_big_end": 0.04
+  },
+
+  "combustion": {
+    "t_ignition": 16.0,
+    "burn_delay": 6.0,
+    "t_burn": 48.0,
+    "afr": 14.7,
+    "calorific_value": 44.0,
+    "weibe_a": 5.0,
+    "weibe_m": 2.0,
+    "efficiency_combustion": 0.35,
+    "gasoline_friction_a": 1e5,
+    "gasoline_friction_b": 250
+  },
+
+  "valves": {
+    "num_valves": [2, 2],
+    "diam_valves": [0.03, 0.022],
+    "lift_peak": [0.0087, 0.0082],
+    "cam_duration": [258.0, 260.0],
+    "peak_lift_angle": [121.0, 115.0],
+    "flow_coeff": [0.65, 0.65]
+  },
+
+  "operating_conditions": {
+    "rpm": 2500,
+    "p_atm": 101325,
+    "p_inlet_boost": 101325,
+    "temp_inlet": 300,
+    "p_back_pressure": 5000,
+    "temp_atm": 298,
+    "temp_exhaust": 700,
+    "p_intake": 101325
+  },
+
+  "gas_properties": {
+    "R_air": 287.0,
+    "Cp": 1005.0,
+    "Cv": 718.0,
+    "gamma": 1.4,
+    "rho_air": 1.225
+  },
+
+  "simulation": {
+    "theta_min": -360,
+    "theta_max": 360,
+    "theta_delta": 1,
+    "temp_wall": 373,
+    "p_crank_case": 101325,
+    "cd_valve": 0.7
+  }
+}
