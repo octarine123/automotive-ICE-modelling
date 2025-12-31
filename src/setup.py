@@ -1,7 +1,13 @@
 import numpy as np
-import constants as c
+import json
 import csv
 
+with open("src/engine_config.json", "r") as file:
+    config = json.load(file)
+
+THETA_MIN = config['simulation']['theta_min']
+THETA_MAX = config['simulation']['theta_min']
+THETA_DELTA = config['simulation']['theta_delta']
 
 def open_csv_dict(filename):
     output_dict = {}
@@ -16,7 +22,7 @@ def open_csv_dict(filename):
 
 
 # setup
-theta_list = list(np.arange(c.THETA_MIN, c.THETA_MAX + 1, c.THETA_DELTA))
+theta_list = list(np.arange(THETA_MIN, THETA_MAX + 1, THETA_DELTA))
 theta_len = len(theta_list)
 
 eng_dict = {"theta": theta_list,
@@ -115,7 +121,7 @@ eval_dict = {"FMEP": 0.0,
              "heat coolant": 0.0,
              "H total": 0.0}
 
-param_dict = open_csv_dict("inputs/engine_parameters_landscape.csv")
+param_dict = open_csv_dict("src/inputs/engine_parameters_landscape.csv")
 
 # engine parameters
 BORE = float(param_dict['BORE'])

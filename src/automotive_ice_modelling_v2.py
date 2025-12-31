@@ -10,21 +10,23 @@ print("ICE simulator started.")
 
 import os
 import math
+import json
 import numpy as np
 from scipy.interpolate import barycentric_interpolate
-import constants as c
-import cui_logic as cui
-from setup import theta_list, eng_dict, param_list, unit_list
-from  cui_logic import intro_menu, main_menu
-import utils
-import engine as eng
-from gas_dynamics import flow_logic_intake, flow_logic_exhaust, m_dot_i_all_2, m_dot_e_all_2
-from thermodynamics import heat_transfer
-from combustion import comb_calcs
+from src.setup import theta_list, eng_dict, param_list, unit_list
+import src.utils
+import src.engine as eng
+from src.gas_dynamics import flow_logic_intake, flow_logic_exhaust, m_dot_i_all_2, m_dot_e_all_2
+from src.thermodynamics import heat_transfer
+from src.combustion import comb_calcs
+import pytest
 
-def find_nearest(array, value):
+with open("src/engine_config.json", "r") as file:
+    config = json.load(file)
+
+def find_nearest(array, value) -> float:
     idx = np.searchsorted(array, value, side='left')
-    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx - 1]) <
+    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx - 1]) <=
                     math.fabs(value - array[idx])):
         nearest = array[idx - 1]
     else:
@@ -46,13 +48,13 @@ def shift_list(list_a, shift):
 
 def temp_gas(pres, vol_gas, mass):
     """calc temp of gas (°K)"""
-    temp = (pres * vol_gas) / (mass * c.R_AIR)
+    temp = (pres * vol_gas) / (mass * R_AIR)
     return temp
 
 
 def enthalpy_rate(mass_flow, temp):
     """Calc enthalpy rate (J/s)"""
-    delta_h = c.C_P * temp * mass_flow
+    delta_h = C_P * temp * mass_flow
     return delta_h
 
 
@@ -62,6 +64,15 @@ def calc_circumference(rad):
     """
     circumference = math.pi * 2 * rad
     return circumference
+
+GAMMA = config['gas_properties']['gamma']
+P_ATM = config['operating_conditions']['p_atm']
+P_BACK_PRESSURE = config['operating_conditions']['p_back_pressure']
+R_AIR = config['gas_properties']['R_air']
+C_P = config['gas_properties']["Cp"]
+TEMP_INLET = config["operating_conditions"]['temp_inlet']
+P_INTAKE = config["operating_conditions"]['p_intake']
+
 
 piston_pos = {'TDC': [-360, 0],
               'BDC': [-180, 180]}
@@ -87,8 +98,8 @@ E_CLOSE = E_OPEN + valve_data['cam_duration'][1]
 root_path = os.getcwd() + "/"
 
 # calc_constants
-GAM_FUNC = (c.GAM ** 0.5) * (2 / (c.GAM + 1)) ** ((c.GAM + 1) / (2 * (c.GAM - 1)))
-P_EXHAUST = c.P_ATM + c.P_BACK_PRESSURE
+GAM_FUNC = (GAMMA ** 0.5) * (2 / (GAMMA + 1)) ** ((GAMMA + 1) / (2 * (GAMMA - 1)))
+P_EXHAUST = P_ATM + P_BACK_PRESSURE
 M_FUEL = 0.0
 
 
@@ -125,7 +136,7 @@ def cam_profile_gen_3(x_pos, y_pos, z_pos):
 
 
 def update_p2(q_tot, p_1, v_1, v_2):
-    gam_val = (c.GAM + 1) / (2 * (c.GAM - 1))
+    gam_val = (GAMMA + 1) / (2 * (GAMMA - 1))
     a_1 = (v_1 * gam_val - v_2 / 2)
     b_1 = (v_2 * gam_val - (v_1 / 2))
     p_2 = (q_tot + (p_1 * a_1)) / b_1
@@ -188,8 +199,8 @@ def pre_calc():
     i_calc = list(eng.i_total(theta_np))
     eng_dict["I total"] = i_calc
     eng_dict['M1'].append(eng.M_AIR_CYC)
-    eng_dict["T1"].append(c.TEMP_INLET)
-    eng_dict["P1"].append(c.P_INTAKE)
+    eng_dict["T1"].append(TEMP_INLET)
+    eng_dict["P1"].append(P_INTAKE)
     # valve calc
     valve_i_circ = calc_circumference(valve_data['diam_valves'][0])
     valve_i_pk = valve_data['lift_peak'][0]
@@ -252,14 +263,12 @@ def core_sim():
 def main():
     pre_calc()
     core_sim()
-    utils.plot_all()
+    src.utils.plot_all()
 
 
 if __name__ == '__main__':
     try:
-        print("intro menu")
-        cui.option(intro_menu)
-        cui.option(main_menu)
+        main()
     except KeyboardInterrupt as error:
         print('Program aborted.')
         raise SystemExit from error

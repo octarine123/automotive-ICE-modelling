@@ -1,6 +1,6 @@
-import constants as c
-import setup
-import engine as eng
+import src.constants as c
+import src.setup as setup
+import src.engine as eng
 
 
 def enthalpy_rate(mass_flow, temp):

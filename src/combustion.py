@@ -1,8 +1,8 @@
-import constants as c
+import src.constants as c
 import math
-from setup import theta_list
-from utils import dif_list
-import engine as eng
+from src.setup import theta_list
+from src.utils import dif_list
+import src.engine as eng
 
 # Combustion Data
 T_IGNITION = 16.0     # btdc_deg

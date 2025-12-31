@@ -1,13 +1,24 @@
 import numpy as np
-import setup
-import constants as c
-from src.setup import eng_dict
-import combustion
+import json
+import src.setup
+import src.constants as c
+from src.setup import eng_dict, eval_dict, MASS_CON_ROD
+import src.combustion
 
+with open("src/engine_config.json", "r") as file:
+    config = json.load(file)
+
+BORE = config["engine"]["stroke"]
+STROKE = config["engine"]["stroke"]
+LEN_CONROD = config["engine"]["con_rod_length"]
+NUM_CYL = config["engine"]["num_cylinders"]
+COMP_RATIO = config["engine"]["compression_ratio"]
+MASS_PISTON = config["engine"]["mass_piston"]
+MASS_CON_ROD = config["engine"]["mass_conrod"]
+P_CRANK_CASE = config["simulation"]["p_crank_case"]
 RPM = 2500.0  # rpm
 DELTA_T = (1 / (6 * RPM))  # /s to /deg
-VEL_AVE = 2 * setup.STROKE * (RPM / 60)
-eval_dict = setup.eval_dict
+VEL_AVE = 2 * STROKE * (RPM / 60)
 
 
 piston_pos = {'TDC': [-360, 0],
@@ -39,9 +50,6 @@ def area_circle(diam):
     return a_circle
 
 
-
-
-
 def eng_speed_rad(rpm):
     """convert eng speed from rpm to rad/s"""
     omega = rpm * ((2 * np.pi) / 60)
@@ -56,11 +64,11 @@ def mass_gas(p_gas, vol_gas, temp):
     return mass
 
 
-A_PISTON = area_circle(setup.BORE)  # m^2
-SV = float(A_PISTON * setup.STROKE)  # m^3
-CV = SV / (setup.COMP_RATIO - 1)  # m^3
-MASS_OSC = setup.MASS_PISTON + setup.MASS_CON_ROD / 3  # kg
-RADIUS_CRANK = setup.STROKE / 2
+A_PISTON = area_circle(BORE)  # m^2
+SV = float(A_PISTON * STROKE)  # m^3
+CV = SV / (COMP_RATIO - 1)  # m^3
+MASS_OSC = MASS_PISTON + MASS_CON_ROD / 3  # kg
+RADIUS_CRANK = STROKE / 2
 M_AIR_IDEAL = mass_gas(c.P_ATM, SV, c.TEMP_ATM)
 M_AIR_CYC = mass_gas(c.P_INTAKE, CV, c.TEMP_INLET)
 eng_speed = eng_speed_rad(RPM)
@@ -68,7 +76,7 @@ L_TDC = CV / A_PISTON
 
 
 def p_force(p_cyl):
-    p_f_val = (p_cyl - c.P_CRANK_CASE) * A_PISTON
+    p_f_val = (p_cyl - P_CRANK_CASE) * A_PISTON
     return p_f_val
 
 
@@ -76,24 +84,24 @@ def len_h(theta):
     """
     calc piston positon (m)
     """
-    len_a = np.sqrt(setup.LEN_CONROD ** 2.0 -
+    len_a = np.sqrt(eng_dict.LEN_CONROD ** 2.0 -
                     (RADIUS_CRANK * np.sin(np.radians(theta))) ** 2)
     len_b = RADIUS_CRANK * np.cos(np.radians(theta))
     len_s = len_a + len_b
-    len_h_sum = RADIUS_CRANK + setup.LEN_CONROD - len_s
+    len_h_sum = RADIUS_CRANK + eng_dict.LEN_CONROD - len_s
     return len_h_sum
 
 
 def stress_conrod(theta):
     """calculate stress on piston (Pa)"""
-    sigma = i_total(theta) / setup.A_CON_ROD
+    sigma = i_total(theta) / eng_dict.A_CON_ROD
     return sigma
 
 
 def vel_piston(theta):
     """calc piston velocity (m/2)"""
     vel = - RADIUS_CRANK * eng_speed * (
-                np.sin(np.radians(theta)) + 0.5 * (RADIUS_CRANK / setup.LEN_CONROD) *
+                np.sin(np.radians(theta)) + 0.5 * (RADIUS_CRANK / LEN_CONROD) *
                 np.sin(np.radians(2 * theta)))
     return vel
 
@@ -101,7 +109,7 @@ def vel_piston(theta):
 def accel_piston(theta):
     """calc piston accel (m/s2)"""
     accel = - RADIUS_CRANK * eng_speed ** 2 * (
-                np.cos(np.radians(theta)) + (RADIUS_CRANK / setup.LEN_CONROD) *
+                np.cos(np.radians(theta)) + (RADIUS_CRANK / LEN_CONROD) *
                 np.cos(np.radians(2 * theta)))
     return accel
 
@@ -114,12 +122,12 @@ def v_cyl(theta):
 
 def fmep(rpm):
     """Friction mean effective pressure"""
-    fmep_val = c.GAS_A_FRI + c.GAS_B_FRI * setup.STROKE * rpm
+    fmep_val = c.GAS_A_FRI + c.GAS_B_FRI * eng_dict.STROKE * rpm
     return fmep_val
 
 
 def conrod_stress(force):
-    stress = force / setup.A_CON_ROD
+    stress = force / eng_dict.A_CON_ROD
     return stress
 
 def imep(wc_gross_val):
@@ -139,10 +147,9 @@ def bmep(imep_val, fmep_val, pmep_val):
     return bmep_val
 
 
-
 def wf_1_cyc():
     """Work one cycle (J)"""
-    fmep_val = setup.eval_dict["FMEP"]
+    fmep_val = eval_dict["FMEP"]
     wf_one = -fmep_val * SV
     return wf_one
 
@@ -157,21 +164,21 @@ def pf_one_cyc():
 def pf_total():
     """Total Power (W)"""
     pf_one = eval_dict["Pf one"]
-    pf_total_val = pf_one * setup.NUM_CYL
+    pf_total_val = pf_one * NUM_CYL
     return pf_total_val
 
 
 def chem_eng():
     """Chemical Energy"""
-    q_in = np.sum(np.array(eng_dict["Q in"]))
+    q_in = np.sum(np.array(eng_dict.eng_dict["Q in"]))
     chem_eng_val = (1 - c.EFF_COMB) * q_in
     return chem_eng_val
 
 
 def heat_coolant():
     """Heat to Coolant (J)"""
-    heat_loss = sum(eng_dict["Q out"])
-    wf_one = eval_dict["Wf one"]
+    heat_loss = sum(src.setup.eng_dict["Q out"])
+    wf_one = src.setup.eval_dict["Wf one"]
     heat_coolant_val = wf_one + heat_loss
     return heat_coolant_val
 
@@ -205,8 +212,8 @@ def calc_m_fuel(rpm, t_cam):
 
 
 def eff_vol():
-    end = setup.eng_dict["theta"].index(-90.0)
-    r_mass = np.sum(np.array(setup.eng_dict['m_dot_intake'][:end]))
+    end = eng_dict["theta"].index(-90.0)
+    r_mass = np.sum(np.array(eng_dict['m_dot_intake'][:end]))
     eff_vol_val = r_mass / M_AIR_IDEAL
     return eff_vol_val
 
@@ -262,14 +269,14 @@ def i_total(theta):
                RADIUS_CRANK *
                (eng_speed ** 2) * np.cos(np.radians(theta))) - \
             (MASS_OSC * RADIUS_CRANK * (eng_speed ** 2) * RADIUS_CRANK) / \
-            (setup.LEN_CONROD * np.cos(np.radians(2 * theta)))
+            (LEN_CONROD * np.cos(np.radians(2 * theta)))
     return i_sum
 
 
 def p_total(w_brake_val, rpm):
     """Total Power (W)"""
     p_1_cyc = w_brake_val * (rpm / 120)
-    p_total_val = setup.NUM_CYL * p_1_cyc
+    p_total_val = NUM_CYL * p_1_cyc
     return p_total_val
 
 
@@ -290,7 +297,7 @@ def eff_mech(imep_val, bmep_val):
 
 
 def eff_therm(w_brake_val):
-    eff_therm_val = abs(w_brake_val / ((c.CAL_VAL * 10 ** 6) * combustion.M_FUEL))
+    eff_therm_val = abs(w_brake_val / ((c.CAL_VAL * 10 ** 6) * src.combustion.M_FUEL))
     return eff_therm_val
 
 
@@ -303,7 +310,7 @@ def bsfc():
 
 def fuel_cons():
     """Fuel Consumption (kg/hr)"""
-    fuel_cons_val = setup.NUM_CYL * ((RPM * 60) / 2) * combustion.M_FUEL
+    fuel_cons_val = NUM_CYL * ((RPM * 60) / 2) * src.combustion.M_FUEL
     return fuel_cons_val
 
 def evaluate_all():

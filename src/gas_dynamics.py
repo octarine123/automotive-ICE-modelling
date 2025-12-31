@@ -1,6 +1,6 @@
 import math
-import constants as c
-import engine as eng
+import src.constants as c
+import src.engine as eng
 
 PR_CRT = (2 / (c.GAM + 1)) ** (c.GAM / (c.GAM - 1))
 P_EXHAUST = c.P_ATM + c.P_BACK_PRESSURE
@@ -145,26 +145,24 @@ def flow_logic_exhaust(p_cyl):
 def m_dot_i_all_2(p_cyl, temp, area, logic):
     """calc all m dot intake values (kg/deg)    """
     if logic[0] is True:
-        m_flow_i = (m_dot_i_c1(p_cyl, area))
+        m_flow_i = (m_dot_i_c1(p_cyl, area)) * eng.DELTA_T
     elif logic[1] is True:
-        m_flow_i = m_dot_i_c2(area)
+        m_flow_i = m_dot_i_c2(area) * eng.DELTA_T
     elif logic[2] is True:
-        m_flow_i = m_dot_i_c3(p_cyl, area, temp)
+        m_flow_i = m_dot_i_c3(p_cyl, area, temp) * eng.DELTA_T
     elif logic[3] is True:
-        m_flow_i = m_dot_i_c4(p_cyl, area, temp)
-    m_flow_i = m_flow_i * eng.DELTA_T
+        m_flow_i = m_dot_i_c4(p_cyl, area, temp) * eng.DELTA_T
     return m_flow_i
 
 
 def m_dot_e_all_2(p_cyl, temp, area, logic):
     """calc all m dot exhaust values"""
     if logic[0] is True:
-        m_flow_e = (mass_flow_exhaust_c1(p_cyl, area))
+        m_flow_e = (mass_flow_exhaust_c1(p_cyl, area)) * eng.DELTA_T
     elif logic[1] is True:
-        m_flow_e = mass_flow_exhaust_c2(area)
+        m_flow_e = mass_flow_exhaust_c2(area) * eng.DELTA_T
     elif logic[2] is True:
-        m_flow_e = mass_flow_exhaust_c3(p_cyl, area, temp)
+        m_flow_e = mass_flow_exhaust_c3(p_cyl, area, temp) * eng.DELTA_T
     elif logic[3] is True:
-        m_flow_e = mass_flow_exhaust_c4(p_cyl, area, temp)
-    m_flow_e = m_flow_e * eng.DELTA_T
+        m_flow_e = mass_flow_exhaust_c4(p_cyl, area, temp) * eng.DELTA_T
     return m_flow_e
