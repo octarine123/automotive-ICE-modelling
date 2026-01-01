@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+with open("src/engine_config.json", "r") as file:
+    config = json.load(file)
+
 # operating conditions
 P_ATM = 101.1 * 10 ** 3  # Pa
 P_INLET_BOOST = -60.6 * 10 ** 3  # Pa
